@@ -1,0 +1,157 @@
+{
+  "storageLevel": "MEMORY_AND_DISK_SER",
+  "name": "p1",
+  "description": "p",
+  "sparkStreamingWindow": "10s",
+  "checkpointPath": "/tmp/checkpoint",
+  "rawData": {
+    "enabled": "false",
+    "path": "default"
+  },
+  "transformations": [
+    {
+      "type": "Morphlines",
+      "order": 0,
+      "inputField": "_attachment_body",
+      "outputFields": [
+        {
+          "name": "country",
+          "type": "string"
+        },
+        {
+          "name": "modified",
+          "type": "timestamp"
+        },
+        {
+          "name": "guests",
+          "type": "integer"
+        }
+      ],
+      "configuration": {
+        "morphline": {
+          "id": "morphline1",
+          "importCommands": [
+            "org.kitesdk.**"
+          ],
+          "commands": [
+            {
+              "readJson": {
+                
+              }
+            },
+            {
+              "extractJsonPaths": {
+                "paths": {
+                  "country": "/group/group_country",
+                  "modified": "/mtime",
+                  "guests": "/guests"
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "streamTriggers": [
+    
+  ],
+  "cubes": [
+    {
+      "name": "cube1",
+      "dimensions": [
+        {
+          "name": "country",
+          "field": "country",
+          "precision": "identity",
+          "type": "Default"
+        },
+        {
+          "name": "modified",
+          "field": "modified",
+          "precision": "1m",
+          "type": "DateTime",
+          "computeLast": "10m"
+        }
+
+      ],
+      "operators": [
+        {
+          "type": "Sum",
+          "name": "sum1",
+          "configuration": {
+            "inputField": "guests"
+          }
+        },
+        {
+          "name": "total",
+          "type": "Count",
+          "configuration": {}
+        }
+      ],
+      "writer": {
+        "outputs": [
+          "print"
+        ],
+        "dateType": "timestamp",
+        "isAutoCalculatedId": false
+      },
+      "triggers": [
+        
+      ]
+    }
+  ],
+  "input": {
+    "name": "kinesis",
+    "type": "Kinesis",
+    "configuration": {
+      "appName":"test-spark-streamingsss",
+      "streamName":"mystream",
+      "endpointUrl":"https://kinesis.us-east-1.amazonaws.com",
+      "regionName":"us-east-1",
+      "batchLength":"10000",
+      "awsAccessKeyId":"awsAccessKeyId",
+      "awsSecretKey":"awsSecretKey"
+    }
+  },
+  "outputs": [
+    {
+      "name": "print",
+      "type": "Print",
+      "configuration": {
+        
+      }
+    },
+    {
+      "name": "mongo",
+      "type": "MongoDb",
+      "configuration": {
+        "connectionsPerHost": "5",
+        "dbName": "sparta",
+        "threadsAllowedToBlock": "10",
+        "language": "",
+        "hosts": [
+          {
+            "host": "mongo",
+            "port": "27017"
+          }
+        ],
+        "retrySleep": "1000"
+      }
+    }
+  ],
+  "fragments": [
+
+  ],
+  "userPluginsJars": [
+    "/opt/sds/jars/amazon-kinesis-client-1.4.0.jar",
+    "/opt/sds/jars/aws-java-sdk-1.9.37.jar",
+    "/opt/sds/jars/aws-java-sdk-cloudwatch-1.9.37.jar",
+    "/opt/sds/jars/aws-java-sdk-core-1.9.37.jar",
+    "/opt/sds/jars/aws-java-sdk-dynamodb-1.9.37.jar",
+    "/opt/sds/jars/aws-java-sdk-kinesis-1.9.37.jar",
+    "/opt/sds/jars/spark-streaming-kinesis-asl_2.10-1.6.1.jar",
+    "/opt/sds/jars/protobuf-java-2.6.1.jar",
+    "/opt/sds/jars/input-kinesis-0.9.0.jar"
+  ]
+}

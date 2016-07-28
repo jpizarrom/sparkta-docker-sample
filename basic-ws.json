@@ -1,0 +1,143 @@
+{
+  "storageLevel": "MEMORY_AND_DISK_SER",
+  "name": "ws2",
+  "description": "p",
+  "sparkStreamingWindow": "10s",
+  "checkpointPath": "/tmp/checkpoint",
+  "rawData": {
+    "enabled": "false",
+    "path": "default"
+  },
+  "transformations": [
+    {
+      "type": "Morphlines",
+      "order": 0,
+      "inputField": "_attachment_body",
+      "outputFields": [
+        {
+          "name": "country",
+          "type": "string"
+        },
+        {
+          "name": "modified",
+          "type": "timestamp"
+        },
+        {
+          "name": "guests",
+          "type": "integer"
+        }
+      ],
+      "configuration": {
+        "morphline": {
+          "id": "morphline1",
+          "importCommands": [
+            "org.kitesdk.**"
+          ],
+          "commands": [
+            {
+              "readJson": {
+                
+              }
+            },
+            {
+              "extractJsonPaths": {
+                "paths": {
+                  "country": "/group/group_country",
+                  "modified": "/mtime",
+                  "guests": "/guests"
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "streamTriggers": [
+    
+  ],
+  "cubes": [
+    {
+      "name": "cube1",
+      "dimensions": [
+        {
+          "name": "country",
+          "field": "country",
+          "precision": "identity",
+          "type": "Default"
+        },
+        {
+          "name": "modified",
+          "field": "modified",
+          "precision": "1m",
+          "type": "DateTime",
+          "computeLast": "10m"
+        }
+
+      ],
+      "operators": [
+        {
+          "type": "Sum",
+          "name": "sum1",
+          "configuration": {
+            "inputField": "guests"
+          }
+        },
+        {
+          "name": "total",
+          "type": "Count",
+          "configuration": {}
+        }
+      ],
+      "writer": {
+        "outputs": [
+          "print"
+        ],
+        "dateType": "timestamp",
+        "isAutoCalculatedId": false
+      },
+      "triggers": [
+        
+      ]
+    }
+  ],
+  "input": {
+    "name": "meetup",
+    "type": "WebSocket",
+    "configuration": {
+      "url": "ws://stream.meetup.com/2/rsvps"
+    }
+  },
+  "outputs": [
+    {
+      "name": "print",
+      "type": "Print",
+      "configuration": {
+        
+      }
+    },
+    {
+      "name": "mongo",
+      "type": "MongoDb",
+      "configuration": {
+        "connectionsPerHost": "5",
+        "dbName": "sparta",
+        "threadsAllowedToBlock": "10",
+        "language": "",
+        "hosts": [
+          {
+            "host": "mongo",
+            "port": "27017"
+          }
+        ],
+        "retrySleep": "1000"
+      }
+    }
+  ],
+  "fragments": [
+
+  ],
+  "userPluginsJars": [
+
+  ]
+}

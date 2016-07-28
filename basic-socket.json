@@ -1,0 +1,127 @@
+{
+  "storageLevel": "MEMORY_AND_DISK_SER",
+  "name": "s1",
+  "description": "p",
+  "sparkStreamingWindow": "10s",
+  "checkpointPath": "/tmp/checkpoint",
+  "rawData": {
+    "enabled": "false",
+    "path": "default"
+  },
+  "transformations": [
+    {
+      "type": "Morphlines",
+      "order": 0,
+      "inputField": "_attachment_body",
+      "outputFields": [
+        {
+          "name": "country",
+          "type": "string"
+        },
+        {
+          "name": "modified",
+          "type": "timestamp"
+        },
+        {
+          "name": "guests",
+          "type": "integer"
+        }
+      ],
+      "configuration": {
+        "morphline": {
+          "id": "morphline1",
+          "importCommands": [
+            "org.kitesdk.**"
+          ],
+          "commands": [
+            {
+              "readJson": {
+                
+              }
+            },
+            {
+              "extractJsonPaths": {
+                "paths": {
+                  "country": "/group/group_country",
+                  "modified": "/mtime",
+                  "guests": "/guests"
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "streamTriggers": [
+    
+  ],
+  "cubes": [
+    {
+      "name": "cube1",
+      "dimensions": [
+        {
+          "name": "country",
+          "field": "country",
+          "precision": "identity",
+          "type": "Default"
+        },
+        {
+          "name": "modified",
+          "field": "modified",
+          "precision": "1m",
+          "type": "DateTime",
+          "computeLast": "10m"
+        }
+
+      ],
+      "operators": [
+        {
+          "type": "Sum",
+          "name": "sum1",
+          "configuration": {
+            "inputField": "guests"
+          }
+        },
+        {
+          "name": "total",
+          "type": "Count",
+          "configuration": {}
+        }
+      ],
+      "writer": {
+        "outputs": [
+          "print"
+        ],
+        "dateType": "timestamp",
+        "isAutoCalculatedId": false
+      },
+      "triggers": [
+        
+      ]
+    }
+  ],
+  "input": {
+    "name": "so",
+    "type": "Socket",
+    "configuration": {
+      "hostname": "192.168.0.18",
+      "port": "9999"
+    }
+  },
+  "outputs": [
+    {
+      "name": "print",
+      "type": "Print",
+      "configuration": {
+        
+      }
+    }
+  ],
+  "fragments": [
+
+  ],
+  "userPluginsJars": [
+
+  ]
+}
